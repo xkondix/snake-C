@@ -12,7 +12,7 @@ void frame();
 void printSnake();
 int concatWithBody();
 
-//varibles
+//variables
 int foodY,foodX,dy,dx;
 int len = 1;
 bool quit = false;
