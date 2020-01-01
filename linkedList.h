@@ -88,10 +88,11 @@ void pushFirst(int x, int y) {
 
 /**********************************************************/
 
-void popEnd(){
+int popEnd(){
+  int defaultVaule = -1;
 
   if(head == NULL || tail == NULL){
-    return;
+    return defaultVaule;
   }
 
 
@@ -100,12 +101,14 @@ void popEnd(){
   {
         head = NULL;
         tail = NULL;
+        return defaultVaule;
   }
 
   head->prev = tail->prev;
   tail->prev->next = head;
   free(tail);
   tail = head->prev;
+  return defaultVaule;
 
 
 }

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <ncurses.h>
+#include <ncurses.h> //http://www.cs.ukzn.ac.za/~hughm/os/notes/ncurses.html
 #include "linkedList.h" //https://github.com/xkondix/LinkedList-PYTHON-C-JAVA/blob/master/doublyLinkedList.c
 #include <time.h>
 
@@ -14,9 +14,13 @@ int concatWithBody();
 void wayMove();
 void changePos();
 void viewScore();
+void incrementTime();
+void initVariables();
+int gameOver();
+void restart();
 
 //global variables
-int foodY,foodX,dy,dx,len,c;
+int foodY,foodX,dy,dx,len,c,timeHorizontal,timeVertical;
 bool quit;
 char mov;
 
@@ -25,31 +29,40 @@ int main(void)
 {
   WINDOW * mainwin;
 
+
+  //init variables
+  initVariables();
+
   //init ncurses
   if ( (mainwin = initscr()) == NULL ) {
     fprintf(stderr, "Error initialising ncurses.\n");
     exit(EXIT_FAILURE);
   }
-  srand(time(NULL));
-  noecho();         // nie pokazuj wpisywanych danych
-  cbreak();         // disables line buffering and erase/kill character-processing
-  timeout(400);     // wait 500ms for key press
+  noecho();
+  cbreak();
+  timeout(timeHorizontal);
   keypad(stdscr, TRUE);
 
-  //init
-  pushFirst(5,5);
-  dy=4;
-  dx=4;
-  mov = 'd';
-  len = 1;
-  quit = false;
-  mvaddstr(22, 0, "wynik");
+
+  //init random
+  srand(time(NULL));
+
+
+  //init basic frame and food
+  restr:
   createFood();
   frame();
+  mvaddstr(21, 0, "score -> ");
+  mvaddstr(21, 15, "q -> exit");
+  mvaddstr(21, 25, "p -> pause");
+
+
+
+
 
   do {
 
-    wayMove();
+    wayMove(); // thread, sleep 1 s
     changePos();
     printSnake();
     eatFood();
@@ -58,16 +71,16 @@ int main(void)
 
   } while( ! quit );
 
+  //restart and score
+  if(gameOver())
+  {
+    restart();
+    goto restr;
+  }
 
-  // clean
+  //clean
   nocbreak();
   echo();
-  mvaddstr(10,10,"GAME OVER");
-  mvaddstr(11,10,"your score ->");
-  char str[12];
-  sprintf(str, "%d", len);
-  mvaddstr(11,16,str);
-  getchar();
   delwin(mainwin);
   endwin();
   return EXIT_SUCCESS;
@@ -157,6 +170,7 @@ if(head->x==foodX && head->y==foodY)
 {
 createFood();
 len+=1;
+incrementTime();
 }
 else{
 popEnd();
@@ -247,43 +261,45 @@ void changePos()
 
 void wayMove()
 {
-
     c = getch();
     switch (c)
     {
       case 'q':
         quit = true;
         break;
+      case 'p':
+        while(getch()!='p'){}
+        break;
       case 'd':
-        timeout(400);
+        timeout(timeVertical);
         if(mov!='a') mov='d';
         break;
       case 's':
-        timeout(600);
+        timeout(timeHorizontal);
         if(mov!='w')  mov='s';
         break;
       case 'a':
-       timeout(400);
+       timeout(timeVertical);
         if(mov!='d') mov='a';
         break;
       case 'w':
-       timeout(600);
+       timeout(timeHorizontal);
        if(mov!='s')  mov='w';
         break;
       case KEY_RIGHT:
-        timeout(400);
+        timeout(timeVertical);
         if(mov!='a') mov='d';
         break;
       case KEY_DOWN:
-        timeout(600);
+        timeout(timeHorizontal);
         if(mov!='w')  mov='s';
         break;
       case KEY_LEFT:
-       timeout(400);
+       timeout(timeVertical);
         if(mov!='d') mov='a';
         break;
       case KEY_UP:
-       timeout(600);
+       timeout(timeHorizontal);
        if(mov!='s')  mov='w';
         break;
       default:
@@ -296,8 +312,60 @@ void viewScore()
 
     char str[12];
     sprintf(str, "%d", len);
-    mvaddstr(22, 6, str);
+    mvaddstr(21, 9, str);
 
+
+}
+
+void incrementTime()
+{
+    timeHorizontal-=10;
+    timeVertical-=10;
+}
+
+void initVariables()
+{
+
+  pushFirst(5,5);
+  dy=4;
+  dx=4;
+  mov = 'd';
+  len = 1;
+  timeHorizontal = 600;
+  timeVertical = 400;
+  quit = false;
+
+
+
+}
+
+int gameOver()
+{
+  clear();
+  mvaddstr(10,10,"GAME OVER");
+  mvaddstr(11,10,"your score ->");
+  char str[12];
+  sprintf(str, "%d", len);
+  mvaddstr(11,25,str);
+  mvaddstr(12,10,"press r to restart or anything to exit");
+  refresh();
+
+  int chr = getchar();
+  if(chr=='r') return 1;
+  return 0;
+}
+
+void restart()
+{
+
+    while(tail!=NULL)
+    {
+        popEnd();
+    }
+    initVariables();
+    timeout(timeHorizontal);
+    clear();
+    refresh();
 }
 
 
