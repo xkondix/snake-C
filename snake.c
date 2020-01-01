@@ -11,14 +11,14 @@ void eatFood();
 void frame();
 void printSnake();
 int concatWithBody();
+void wayMove();
+void changePos();
+void viewScore();
 
-//variables
-int foodY,foodX,dy,dx;
-int len = 1;
-bool quit = false;
-char mov = 'd';
-
-
+//global variables
+int foodY,foodX,dy,dx,len,c;
+bool quit;
+char mov;
 
 //main
 int main(void)
@@ -34,105 +34,40 @@ int main(void)
   noecho();         // nie pokazuj wpisywanych danych
   cbreak();         // disables line buffering and erase/kill character-processing
   timeout(400);     // wait 500ms for key press
+  keypad(stdscr, TRUE);
 
   //init
-  pushEnd(5,5);
-  dy=5;
-  dx=5;
+  pushFirst(5,5);
+  dy=4;
+  dx=4;
+  mov = 'd';
+  len = 1;
+  quit = false;
   mvaddstr(22, 0, "wynik");
   createFood();
   frame();
 
   do {
 
-
-    int c = getch();
-    switch (c)
-    {
-      case 'q':
-        quit = true;
-        break;
-      case 'd':
-        timeout(400);
-        if(mov!='a') mov='d';
-        break;
-      case 's':
-        timeout(600);
-        if(mov!='w')  mov='s';
-        break;
-      case 'a':
-       timeout(400);
-        if(mov!='d') mov='a';
-        break;
-      case 'w':
-       timeout(600);
-       if(mov!='s')  mov='w';
-        break;
-      default:
-        break;
-        }
-
-
-    switch(mov)
-    {
-    case 'w':
-        {
-            head->y--;
-            pushFirst(head->x,head->y);
-            if(head->y<0 || concatWithBody(head->x,head->y)) quit=true;
-            break;
-        }
-    case 'd':
-        {
-            head->x++;
-            pushFirst(head->x,head->y);
-            if(head->x>=40 || concatWithBody(head->x,head->y)) quit=true;
-            break;
-        }
-    case 's':
-        {
-            head->y++;
-            pushFirst(head->x,head->y);
-            if(head->y>=20 || concatWithBody(head->x,head->y))  quit=true;
-            break;
-        }
-    case 'a':
-        {
-            head->x--;
-            pushFirst(head->x,head->y);
-            if(head->x<=0 || concatWithBody(head->x,head->y)) quit=true;
-            break;
-        }
-    default:
-        {
-            break;
-        }
-
-    }
-
-    //clear move and eat
-    //mvaddstr(dy, dx, " ");
+    wayMove();
+    changePos();
     printSnake();
     eatFood();
-
-
-
-
-    //score
-    char str[12];
-    sprintf(str, "%d", len);
-    mvaddstr(22, 6, str);
-
-    //refresh
+    viewScore();
     refresh();
 
   } while( ! quit );
 
 
-  // Czyszczenie
+  // clean
   nocbreak();
   echo();
-  refresh();
+  mvaddstr(10,10,"GAME OVER");
+  mvaddstr(11,10,"your score ->");
+  char str[12];
+  sprintf(str, "%d", len);
+  mvaddstr(11,16,str);
+  getchar();
   delwin(mainwin);
   endwin();
   return EXIT_SUCCESS;
@@ -158,7 +93,6 @@ int i = 0;
     {
         mvaddstr(j, rows-1-i, "||");
     }
-
 
 
    for(int j = i;j<rows+1;j++ )
@@ -218,60 +152,45 @@ while(true)
 
 void eatFood()
 {
+
 if(head->x==foodX && head->y==foodY)
 {
-if(len<=1) {pushEnd(dx,dy);}
 createFood();
 len+=1;
 }
-else{popEnd();}
-
+else{
+popEnd();
+}
 mvaddstr(dy, dx, " ");
 dx=tail->x;
 dy=tail->y;
+
+
+
 
 }
 
 void printSnake()
 {
     Node *curr = head;
-
-    if(len == 1) {mvaddstr(curr->y, curr->x, "0");}
-    else if(len == 2)
+    mvaddstr(curr->y, curr->x, "0");
+    curr=curr->next;
+    for(int w = 1; w<len; w++)
     {
-        curr=curr->next;
-        mvaddstr(curr->y, curr->x, "0");
-        curr=curr->next;
         mvaddstr(curr->y, curr->x, "o");
+        curr = curr->next;
     }
-
-    else
-    {
-
-        mvaddstr(curr->y, curr->x, "0");
-        curr=curr->next;
-        mvaddstr(curr->y, curr->x, "0");
-        curr=curr->next;
-
-        for(int w = 2; w<len; w++)
-        {
-            mvaddstr(curr->y, curr->x, "o");
-            curr = curr->next;
-
-        }
-    }
-
-
 }
+
+
+
 
 int concatWithBody(int x, int y)
 {
-    Node *curr = head;
-    curr = curr->next;
-    curr = curr->next;
+    Node *curr = head->next;
 
 
-    for(int w = 2; w<len; w++)
+    for(int w = 1; w<len; w++)
         {
 
             if(curr->x==x && curr->y==y) return 1;
@@ -285,6 +204,101 @@ int concatWithBody(int x, int y)
 }
 
 
+void changePos()
+{
+
+    pushFirst(head->x,head->y);
+
+    switch(mov)
+    {
+    case 'w':
+        {
+            head->y--;
+            if(head->y<0 || concatWithBody(head->x,head->y)) quit=true;
+            break;
+        }
+    case 'd':
+        {
+            head->x++;
+            if(head->x>=40 || concatWithBody(head->x,head->y)) quit=true;
+            break;
+        }
+    case 's':
+        {
+            head->y++;
+            if(head->y>=20 || concatWithBody(head->x,head->y))  quit=true;
+            break;
+        }
+    case 'a':
+        {
+            head->x--;
+            if(head->x<=0 || concatWithBody(head->x,head->y)) quit=true;
+            break;
+        }
+    default:
+        {
+            break;
+        }
+
+    }
+
+}
+
+
+void wayMove()
+{
+
+    c = getch();
+    switch (c)
+    {
+      case 'q':
+        quit = true;
+        break;
+      case 'd':
+        timeout(400);
+        if(mov!='a') mov='d';
+        break;
+      case 's':
+        timeout(600);
+        if(mov!='w')  mov='s';
+        break;
+      case 'a':
+       timeout(400);
+        if(mov!='d') mov='a';
+        break;
+      case 'w':
+       timeout(600);
+       if(mov!='s')  mov='w';
+        break;
+      case KEY_RIGHT:
+        timeout(400);
+        if(mov!='a') mov='d';
+        break;
+      case KEY_DOWN:
+        timeout(600);
+        if(mov!='w')  mov='s';
+        break;
+      case KEY_LEFT:
+       timeout(400);
+        if(mov!='d') mov='a';
+        break;
+      case KEY_UP:
+       timeout(600);
+       if(mov!='s')  mov='w';
+        break;
+      default:
+        break;
+        }
+}
+
+void viewScore()
+{
+
+    char str[12];
+    sprintf(str, "%d", len);
+    mvaddstr(22, 6, str);
+
+}
 
 
 
