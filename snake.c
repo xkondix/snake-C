@@ -3,6 +3,8 @@
 #include <ncurses.h> //http://www.cs.ukzn.ac.za/~hughm/os/notes/ncurses.html
 #include "linkedList.h" //https://github.com/xkondix/LinkedList-PYTHON-C-JAVA/blob/master/doublyLinkedList.c
 #include <time.h>
+//#include <pthread.h> //thread
+//#include<unistd.h>
 
 //function
 int checkConcactFood(int x, int y);
@@ -18,11 +20,14 @@ void incrementTime();
 void initVariables();
 int gameOver();
 void restart();
+//void *threadWay();
+
 
 //global variables
-int foodY,foodX,dy,dx,len,c,timeHorizontal,timeVertical;
+int foodY,foodX,dy,dx,len,c,timeHorizontal,timeVertical;//,run;
 bool quit;
 char mov;
+//pthread_t thread;
 
 //main
 int main(void)
@@ -44,6 +49,7 @@ int main(void)
   keypad(stdscr, TRUE);
 
 
+
   //init random
   srand(time(NULL));
 
@@ -62,7 +68,7 @@ int main(void)
 
   do {
 
-    wayMove(); // thread, sleep 1 s
+    wayMove(); // thread, sleep 1 s or kbhit
     changePos();
     printSnake();
     eatFood();
@@ -261,6 +267,7 @@ void changePos()
 
 void wayMove()
 {
+
     c = getch();
     switch (c)
     {
@@ -319,8 +326,8 @@ void viewScore()
 
 void incrementTime()
 {
-    timeHorizontal-=10;
-    timeVertical-=10;
+    if(timeHorizontal>60) timeHorizontal-=10;
+    if(timeVertical>40) timeVertical-=10;
 }
 
 void initVariables()
@@ -334,6 +341,9 @@ void initVariables()
   timeHorizontal = 600;
   timeVertical = 400;
   quit = false;
+  //run=1;
+  //pthread_create( &thread, NULL,threadWay,NULL);
+
 
 
 
@@ -341,6 +351,7 @@ void initVariables()
 
 int gameOver()
 {
+  //run=0;
   clear();
   mvaddstr(10,10,"GAME OVER");
   mvaddstr(11,10,"your score ->");
@@ -367,6 +378,18 @@ void restart()
     clear();
     refresh();
 }
+
+/*void *threadWay()
+{
+while(run)
+{
+sleep(1);
+wayMove();
+}
+
+}
+*/
+
 
 
 
