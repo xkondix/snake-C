@@ -137,13 +137,9 @@ int checkConcactFood(int x, int y) {
     return;
   }
 
-  while (curr) {
+  for(int i = 0; i<len;i++){
     if(curr->x==x && curr->y==y) return 1;
     curr = curr->next;
-    if(curr == head)
-    {
-        return 0;
-    }
   }
 
   return 0;
@@ -159,11 +155,12 @@ while(true)
  foodX = rand()%36+2;
  foodY = rand()%16+2;
 
-    if(!checkConcactFood(x,y))
+    if(!checkConcactFood(foodX,foodY))
     {
     mvaddstr(foodY,foodX,"*");
     break;
     }
+
 
 }
 
