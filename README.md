@@ -1,6 +1,6 @@
 # snake-C
 
-This is terminal game for Linux.
+This is terminal game for Linux.                                                                                            
 Control w,a,s,d or keyboard arrows.
 
 Screenshot:
